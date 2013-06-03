@@ -544,10 +544,17 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_INFO; // | HTTP_LOG_FLAG_TRACE;
 	return [[HTTPConfig alloc] initWithServer:self documentRoot:documentRoot queue:connectionQueue];
 }
 
+
+// Added by sven.koehler, because's to stupid for ObjC.
+// I want to add a delegate to the new newConnection
+- (HTTPConnection *)newConnectionFor:(GCDAsyncSocket *)newSocket withConfiguration:(HTTPConfig*)config
+{
+	return (HTTPConnection *)[[connectionClass alloc] initWithAsyncSocket:newSocket configuration:config];
+}
+
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
-	HTTPConnection *newConnection = (HTTPConnection *)[[connectionClass alloc] initWithAsyncSocket:newSocket
-	                                                                                 configuration:[self config]];
+	HTTPConnection *newConnection = [self newConnectionFor:newSocket withConfiguration:[self config]];
 	[connectionsLock lock];
 	[connections addObject:newConnection];
 	[connectionsLock unlock];
